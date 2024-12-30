@@ -14,39 +14,43 @@ document.getElementById("checkButton").addEventListener("click", async () => {
 
     resultElement.innerText = "Loading...";
     resultElement.style.display = "block";
+    const { rossCount, notFound } = await checkRossAffiliation(uniqnames);
+    const percentage = ((rossCount / uniqnames.length) * 100).toFixed(2);
 
-    try {
-      const rossCount = await checkRossAffiliation(uniqnames);
-      const percentage = ((rossCount / uniqnames.length) * 100).toFixed(2);
+    if (notFound.length > 0) {
+      resultElement.innerText = `\nThe following uniqnames do not exist: ${notFound.join(", ")}`;
+    }
+    else {
       resultElement.innerText = `${percentage}% of the input list are Ross-affiliated.`;
-      resultElement.style.display = "block";
     }
-    catch (error) {
-      resultElement.innerText = error.message;
-      resultElement.style.display = "block";
-    }
+    resultElement.style.display = "block";
   });
   
   async function checkRossAffiliation(uniqnames) {
     let rossCount = 0;
+    const notFound = [];
   
     for (const uniqname of uniqnames) {
-      const isRossAffiliated = await fetchRossData(uniqname);
-      if (isRossAffiliated === null) {
-        throw new Error(`${uniqname} does not exist`);
+      try {
+          const isRossAffiliated = await fetchRossData(uniqname);
+          if (isRossAffiliated === null) {
+              notFound.push(uniqname);
+          } else if (isRossAffiliated) {
+              rossCount++;
+          }
+      } catch (error) {
+          console.error(`Error processing ${uniqname}: ${error.message}`);
       }
-      if (isRossAffiliated) rossCount++;
-    }
-  
-    return rossCount;
   }
-  
+
+  return { rossCount, notFound };
+}
+
   async function fetchRossData(uniqname) {
     try {
       const response = await fetch(`https://mcommunity.umich.edu/api/people/${uniqname}/`);
       if (response.status === 404) {
-        const errorData = await response.json();
-        console.warn(`User not found:') ${uniqname}. Detail: ${errorData.detail}`);
+        console.warn(`User not found: ${uniqname}.`);
         return null; // Indicate the uniqname does not exist
       }
       
