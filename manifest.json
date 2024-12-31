@@ -3,10 +3,7 @@
     "name": "Ross Affiliation Checker",
     "version": "1.0",
     "description": "Check the percentage of Ross-affiliated students from a list of uniqnames.",
-    "permissions": [
-      "activeTab",
-      "storage"
-    ],
+    "permissions": [],
     "host_permissions": [
       "https://mcommunity.umich.edu/*"
     ],
